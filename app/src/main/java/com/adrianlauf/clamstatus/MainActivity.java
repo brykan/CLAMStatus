@@ -29,7 +29,6 @@ import android.widget.CompoundButton;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity
@@ -53,11 +52,10 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(this, "Bluetooth LE not supported", Toast.LENGTH_SHORT).show();
             finish();
         }
-            UUID deviceID = convertFromInteger(1801);
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
-        bluetoothDevice = bluetoothAdapter.getRemoteDevice("65:92:83:9E:7D:47");
+        bluetoothDevice = bluetoothAdapter.getRemoteDevice("B4:99:4C:7E:43:45");
         bluetoothDevice.connectGatt(getApplicationContext(), true, mGattCallback);
         gatt = bluetoothDevice.connectGatt(this, true, mGattCallback);
 
@@ -76,11 +74,11 @@ public class MainActivity extends AppCompatActivity
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked)
                 {
-                    writeCustomCharacteristic(2);
+                    writeCustomCharacteristic(1);
                 }
                 else
                 {
-                    writeCustomCharacteristic(1);
+                    writeCustomCharacteristic(0);
 
                 }
 
@@ -183,25 +181,22 @@ public class MainActivity extends AppCompatActivity
             return;
         }
         /*check if the service is available on the device*/
-        BluetoothGattService mCustomService = gatt.getService(convertFromInteger(0x1809));
+        BluetoothGattService mCustomService = gatt.getService(convertFromInteger(0xFFE5));
         if (mCustomService == null) {
             Log.w(TAG, "Custom BLE Service not found");
             return;
         }
         /*get the read characteristic from the service*/
-        BluetoothGattCharacteristic mWriteCharacteristic = mCustomService.getCharacteristic(convertFromInteger(0x2A21));
-        for (BluetoothGattDescriptor charactaristic: mWriteCharacteristic.getDescriptors()
-             ) {
-            Log.d(TAG, "writeCustomCharacteristic: "+charactaristic.toString());
+        BluetoothGattCharacteristic mWriteCharacteristic = mCustomService.getCharacteristic(convertFromInteger(0x0013));
+        BluetoothGattCharacteristic mWriteCharacteristic1 = mCustomService.getCharacteristic(convertFromInteger(0xFFE9));
 
-        }
-        ByteBuffer b = ByteBuffer.allocate(10);
-    //b.order(ByteOrder.BIG_ENDIAN); // optional, the initial order of a byte buffer is always BIG_ENDIAN.
-        b.putInt(value);
+        mWriteCharacteristic.setValue(value, android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+        mWriteCharacteristic1.setValue(value, android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT8, 0);
 
-        byte[] result = b.array();
-        mWriteCharacteristic.setValue(result);
         if (gatt.writeCharacteristic(mWriteCharacteristic) == false) {
+            Log.w(TAG, "Failed to write characteristic");
+        }
+        if (gatt.writeCharacteristic(mWriteCharacteristic1) == false) {
             Log.w(TAG, "Failed to write characteristic");
         }
     }
